@@ -101,33 +101,36 @@ def install_labels(cls, quiet=True, stdout=None):
         return
 
     for name, property in cls.defined_properties(aliases=False, rels=False).items():
-        db_property = property.db_property or name
-        if property.index:
-            if not quiet:
-                stdout.write(' + Creating index {0} on label {1} for class {2}.{3}\n'.format(
-                    name, cls.__label__, cls.__module__, cls.__name__))
-            try:
-                db.cypher_query("CREATE INDEX on :{0}({1}); ".format(
-                    cls.__label__, db_property))
-            except ClientError as e:
-                if str(e).lower().startswith("an equivalent index already exists"):
-                    stdout.write('{0}\n'.format(str(e)))
-                else:
-                    raise
+        for label in cls.defined_labels:
+            db_property = property.db_property or name
+            if property.index:
+                if not quiet:
+                    stdout.write(' + Creating index {} on label {} for class {}.{}\n'.format(
+                        name, label, cls.__module__, cls.__name__))
 
-        elif property.unique_index:
-            if not quiet:
-                stdout.write(' + Creating unique constraint for {0} on label {1} for class {2}.{3}\n'.format(
-                    name, cls.__label__, cls.__module__, cls.__name__))
-            try:
-                db.cypher_query("CREATE CONSTRAINT "
-                                "on (n:{0}) ASSERT n.{1} IS UNIQUE".format(
-                    cls.__label__, db_property))
-            except ClientError as e:
-                if str(e).lower().startswith("an equivalent constraint already exists"):
-                    stdout.write('{0}\n'.format(str(e)))
-                else:
-                    raise
+                try:
+                    db.cypher_query("CREATE INDEX on :{}({}); ".format(
+                        label, db_property))
+                except ClientError as e:
+                    if str(e).lower().startswith("an equivalent index already exists"):
+                        stdout.write('{0}\n'.format(str(e)))
+                    else:
+                        raise
+
+            elif property.unique_index:
+                if not quiet:
+                    stdout.write(' + Creating unique constraint for {} on label {} for class {}.{}\n'.format(
+                        name, label, cls.__module__, cls.__name__))
+
+                try:
+                    db.cypher_query("CREATE CONSTRAINT "
+                                    "on (n:{}) ASSERT n.{} IS UNIQUE; ".format(
+                        label, db_property))
+                except ClientError as e:
+                    if str(e).lower().startswith("an equivalent constraint already exists"):
+                        stdout.write('{0}\n'.format(str(e)))
+                    else:
+                        raise
 
 
 def install_all_labels(stdout=None):
@@ -252,6 +255,14 @@ class StructuredNode(NodeBase):
         return repr(self.__properties__)
 
     # dynamic properties
+
+    @classproperty
+    def defined_labels(cls):
+        """
+        Returns a list of the class labels
+        :rtype: list
+        """
+        return cls.__label__.split(':')
 
     @classproperty
     def nodes(cls):
