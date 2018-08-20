@@ -83,23 +83,24 @@ def install_labels(cls, quiet=True, stdout=None):
         return
 
     for name, property in cls.defined_properties(aliases=False, rels=False).items():
-        db_property = property.db_property or name
-        if property.index:
-            if not quiet:
-                stdout.write(' + Creating index {} on label {} for class {}.{}\n'.format(
-                    name, cls.__label__, cls.__module__, cls.__name__))
+        for label in cls.defined_labels:
+            db_property = property.db_property or name
+            if property.index:
+                if not quiet:
+                    stdout.write(' + Creating index {} on label {} for class {}.{}\n'.format(
+                        name, label, cls.__module__, cls.__name__))
 
-            db.cypher_query("CREATE INDEX on :{}({}); ".format(
-                cls.__label__, db_property))
+                db.cypher_query("CREATE INDEX on :{}({}); ".format(
+                    label, db_property))
 
-        elif property.unique_index:
-            if not quiet:
-                stdout.write(' + Creating unique constraint for {} on label {} for class {}.{}\n'.format(
-                    name, cls.__label__, cls.__module__, cls.__name__))
+            elif property.unique_index:
+                if not quiet:
+                    stdout.write(' + Creating unique constraint for {} on label {} for class {}.{}\n'.format(
+                        name, label, cls.__module__, cls.__name__))
 
-            db.cypher_query("CREATE CONSTRAINT "
-                            "on (n:{}) ASSERT n.{} IS UNIQUE; ".format(
-                cls.__label__, db_property))
+                db.cypher_query("CREATE CONSTRAINT "
+                                "on (n:{}) ASSERT n.{} IS UNIQUE; ".format(
+                    label, db_property))
 
 
 def install_all_labels(stdout=None):
@@ -218,6 +219,14 @@ class StructuredNode(NodeBase):
         return repr(self.__properties__)
 
     # dynamic properties
+
+    @classproperty
+    def defined_labels(cls):
+        """
+        Returns a list of the class labels
+        :rtype: list
+        """
+        return cls.__label__.split(':')
 
     @classproperty
     def nodes(cls):

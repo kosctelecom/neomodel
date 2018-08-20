@@ -59,3 +59,19 @@ def test_custom_label_name():
 
     # custom labels aren't inherited
     assert SpecialGiraffe.__label__ == 'SpecialGiraffe'
+
+
+def test_custom_labels():
+    class Animal(StructuredNode):
+        __label__ = 'Animal'
+        name = StringProperty(unique_index=True)
+
+    class Giraffe(Animal):
+        __label__ = 'Giraffe:Animal'
+
+    jim = Giraffe(name='timothy').save()
+    node = Animal.nodes.get(name='timothy')
+    assert node.name == jim.name
+
+    # Giraffe.nodes.get will fail because the cyper query
+    # is invalid with multiple labels
