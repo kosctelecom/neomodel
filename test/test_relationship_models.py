@@ -33,6 +33,10 @@ class Badger(StructuredNode):
     hates = RelationshipTo('Stoat', 'HATES', model=HatesRel)
 
 
+class SmallBadger(Badger):
+    pass
+
+
 class Stoat(StructuredNode):
     name = StringProperty(unique_index=True)
     hates = RelationshipTo('Badger', 'HATES', model=HatesRel)
@@ -147,3 +151,15 @@ def test_save_hook_on_rel_model():
     assert HOOKS_CALLED['pre_save'] == 2
     assert HOOKS_CALLED['post_save'] == 2
 
+
+def test_subclass_rel():
+    luap = SmallBadger(name="Luap").save()
+    snai = Stoat(name="SnaI").save()
+
+    new_rel = snai.hates.connect(luap, {'reason': 'stole my toy'})
+    assert isinstance(new_rel, FriendRel)
+
+    snai = new_rel.start_node()
+    luap = new_rel.end_node()
+    assert luap.name == 'Luap'
+    assert snai.name == 'SnaI'
