@@ -1,41 +1,42 @@
 Configuration
 =============
 
-Covering the neomodel 'config' module and its variables.
+This section is covering the Neomodel 'config' module and its variables.
 
 Database
 --------
 
-Set your connection details::
+Seting the connection URL::
 
     config.DATABASE_URL = 'bolt://neo4j:neo4j@localhost:7687`
 
-Disable encrypted connection (usefult for development::
+Disable encrypted connection (usefult for development)::
 
     config.ENCRYPTED_CONNECTION = False
 
 Adjust connection pool size::
 
-    config.MAX_POOL_SIZE = 50  # default
+    config.MAX_CONNECTION_POOL_SIZE = 50  # default
 
 Enable automatic index and constraint creation
 ----------------------------------------------
 
-After a StructuredNode definition neomodel can install the corresponding constraints and indexes at compile time.
-However this method is only recommended for testing::
+After the definition of a `StructuredNode`, Neomodel can install the corresponding 
+constraints and indexes at compile time. However this method is only recommended for testing::
 
     from neomodel import config
     # before loading your node definitions
     config.AUTO_INSTALL_LABELS = True
 
-Neomodel provides a script `neomodel_install_labels` for the task, however if you want to handle this manually see below.
+Neomodel also provides the `neomodel_install_labels` scripr for this task, 
+however if you want to handle this manually see below.
 
 Install indexes and constraints for a single class::
 
     from neomodel import install_labels
     install_labels(YourClass)
 
-Or for your entire 'schema' ::
+Or for an entire 'schema' ::
 
     import yourapp  # make sure your app is loaded
     from neomodel import install_all_labels

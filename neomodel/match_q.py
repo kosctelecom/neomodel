@@ -68,11 +68,11 @@ class QBase(object):
         return obj
 
     def __str__(self):
-        template = '(NOT (%s: %s))' if self.negated else '(%s: %s)'
-        return template % (self.connector, ', '.join(str(c) for c in self.children))
+        template = '(NOT ({0}: {1}))' if self.negated else '({0}: {1})'
+        return template.format(self.connector, ', '.join(str(c) for c in self.children))
 
     def __repr__(self):
-        return "<%s: %s>" % (self.__class__.__name__, self)
+        return "<{0}: {1}>".format(self.__class__.__name__, self)
 
     def __deepcopy__(self, memodict):
         obj = QBase(connector=self.connector, negated=self.negated)
@@ -116,6 +116,9 @@ class QBase(object):
 
         If `squash` is False the data is prepared and added as a child to
         this tree without further logic.
+
+        Args:
+            conn_type (str, optional ["AND", "OR"]): connection method
         """
         if data in self.children:
             return data
